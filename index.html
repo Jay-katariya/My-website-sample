@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -104,17 +103,13 @@
     }
   </style>
 </head>
-<body>
-
-<header>
+<body><header>
   <h1>Product Catalog</h1>
   <div id="mode-buttons">
     <button onclick="switchToViewer()">Viewer Mode</button>
     <button onclick="switchToAdmin()">Admin Mode</button>
   </div>
-</header>
-
-<div id="admin-controls">
+</header><div id="admin-controls">
   <form id="product-form" onsubmit="addProduct(event)">
     <input type="text" id="product-name" placeholder="Product Name" required />
     <input type="text" id="product-description" placeholder="Product Description" required />
@@ -122,20 +117,13 @@
     <input type="file" id="product-image" accept="image/*" required />
     <button type="submit">Add Product</button>
     <button type="button" onclick="downloadCatalog()">Download Catalogue</button>
+    <button type="button" onclick="downloadViewerHTML()">Download Viewer</button>
   </form>
-</div>
-
-<div id="viewer-controls">
+</div><div id="viewer-controls">
   <input type="file" id="import-file" accept=".json" onchange="importCatalog(event)" />
-</div>
-
-<div class="product-list" id="product-list"></div>
-
-<footer>
+</div><div class="product-list" id="product-list"></div><footer>
   Mohit Marketing - All rights reserved.
-</footer>
-
-<script>
+</footer><script>
   let isAdmin = false;
   const DB_NAME = "ProductDB";
   const DB_STORE = "products";
@@ -169,7 +157,7 @@
     request.onerror = (e) => console.error("Error opening DB", e);
     request.onsuccess = (e) => {
       db = e.target.result;
-      switchToViewer(); // Default to viewer mode only after DB is ready
+      switchToViewer();
     };
     request.onupgradeneeded = (e) => {
       db = e.target.result;
@@ -274,6 +262,28 @@
     };
   }
 
+  function downloadViewerHTML() {
+    const tx = db.transaction(DB_STORE, "readonly");
+    const store = tx.objectStore(DB_STORE);
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+      const data = encodeURIComponent(JSON.stringify(request.result));
+      fetch('https://mohit-marketing.github.io/catalogue-viewer/viewer.html')
+        .then(response => response.text())
+        .then(template => {
+          const viewerHTML = template.replace('"__REPLACE_DATA__"', decodeURIComponent(data));
+          const blob = new Blob([viewerHTML], { type: 'text/html' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'catalogue-viewer.html';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        });
+    };
+  }
+
   function importCatalog(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -295,7 +305,5 @@
     };
     reader.readAsText(file);
   }
-</script>
-
-</body>
+</script></body>
 </html>
